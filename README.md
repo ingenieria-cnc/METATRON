@@ -1,355 +1,497 @@
-# METATRON
-AI-powered penetration testing assistant using local LLM on linux (Parrot OS)
-# 🔱 METATRON
-### AI-Powered Penetration Testing Assistant
+# METATRON — Fork CNC
 
-<p align="center">
-  <img src="screenshots/banner.png" alt="Metatron Banner" width="800"/>
-</p>
+METATRON es un asistente local para tareas de reconocimiento, análisis y validación de seguridad.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.x-blue?style=for-the-badge&logo=python"/>
-  <img src="https://img.shields.io/badge/OS-Parrot%20Linux-green?style=for-the-badge&logo=linux"/>
-  <img src="https://img.shields.io/badge/AI-metatron--qwen-red?style=for-the-badge"/>
-  <img src="https://img.shields.io/badge/DB-MariaDB-orange?style=for-the-badge&logo=mariadb"/>
-  <img src="https://img.shields.io/badge/License-MIT-yellow?style=for-the-badge"/>
-</p>
+Este repositorio corresponde a un fork del proyecto original **METATRON**, adaptado y extendido en el marco del Laboratorio del Centro Nacional de Ciberseguridad (CNC), con foco en su utilización como herramienta de apoyo para analistas de ciberseguridad.
+
+El objetivo de este fork no es reemplazar el criterio técnico del analista ni automatizar completamente un proceso de pentesting. METATRON busca organizar evidencia, relacionar resultados provenientes de distintas herramientas y orientar la investigación técnica posterior.
+
+> **Los hallazgos generados por METATRON requieren validación del analista antes de considerarse vulnerabilidades confirmadas.**
 
 ---
 
-## 📌 What is Metatron?
+## 1. Objetivo
 
-**Metatron** is a CLI-based AI penetration testing assistant that runs entirely on your local machine — no cloud, no API keys, no subscriptions.
+Las herramientas tradicionales de reconocimiento pueden generar una gran cantidad de información técnica que luego debe ser interpretada y correlacionada manualmente.
 
-You give it a target IP or domain. It runs real recon tools (nmap, whois, whatweb, curl, dig, nikto), feeds all results to a locally running AI model, and the AI analyzes the target, identifies vulnerabilities, suggests exploits, and recommends fixes. Everything gets saved to a MariaDB database with full scan history.
+METATRON busca asistir en esa tarea mediante la combinación de:
 
----
+- herramientas tradicionales de reconocimiento;
+- un modelo de lenguaje ejecutado localmente;
+- persistencia estructurada de resultados;
+- una metodología orientada a distinguir evidencia, validaciones pendientes y vulnerabilidades candidatas.
 
-## ✨ Features
-
-- 🤖 **Local AI Analysis** — powered by `metatron-qwen` via Ollama, runs 100% offline
-- 🔍 **Automated Recon** — nmap, whois, whatweb, curl headers, dig DNS, nikto
-- 🌐 **Web Search** — DuckDuckGo search + CVE lookup (no API key needed)
-- 🗄️ **MariaDB Backend** — full scan history with 5 linked tables
-- ✏️ **Edit / Delete** — modify any saved result directly from the CLI
-- 🔁 **Agentic Loop** — AI can request more tool runs mid-analysis
-- 🚫 **No API Keys** — everything is free and local
--📤 Export Reports
-
-Metatron allows you to export scan results into clean, shareable report formats by selecting '2.view history'->select slno and export
-
-📄 PDF — professional vulnerability reports
-🌐 HTML — browser-viewable reports
----
-
-## 🖥️ Screenshots
-
-<p align="center">
-  <img src="screenshots/main_menu.png" alt="Main Menu" width="700"/>
-  <br><i>Main Menu</i>
-</p>
-
-<p align="center">
-  <img src="screenshots/scan_running.png" alt="Scan Running" width="700"/>
-  <br><i>Recon tools running on target</i>
-</p>
-
-<p align="center">
-  <img src="screenshots/ai_analysis.png" alt="AI Analysis" width="700"/>
-  <br><i>metatron-qwen analyzing scan results</i>
-</p>
-
-<p align="center">
-  <img src="screenshots/results.png" alt="Results" width="700"/>
-  <br><i>Vulnerabilities saved to database</i>
-</p>
-<p align="center"> <img src="screenshots/export_menu.png" alt="Export Menu" width="700"/> <br><i>Export scan results as PDF and or HTML</i> </p>
----
-
-## 🧱 Tech Stack
-
-| Component  | Technology                          |
-|------------|-------------------------------------|
-| Language   | Python 3                            |
-| AI Model   | metatron-qwen (fine-tuned Qwen 3.5) |
-| Base Model | huihui_ai/qwen3.5-abliterated:9b    |
-| LLM Runner | Ollama                              |
-| Database   | MariaDB                             |
-| OS         | Parrot OS (Debian-based)            |
-| Search     | DuckDuckGo (free, no key)           |
+El analista conserva siempre la responsabilidad sobre la interpretación, contextualización y validación final de los resultados.
 
 ---
 
-## ⚙️ Installation
+## 2. Alcance
 
-### 1. Clone the repository
+METATRON está orientado a:
+
+- reconocimiento técnico de activos;
+- recolección y organización de evidencia;
+- identificación de observaciones relevantes;
+- propuesta de validaciones adicionales;
+- identificación de vulnerabilidades candidatas;
+- generación de mitigaciones;
+- elaboración de un resumen de riesgo;
+- almacenamiento histórico de resultados.
+
+METATRON **no realiza explotación automática de vulnerabilidades** y no debe interpretarse como un sistema autónomo de pentesting.
+
+---
+
+## 3. Modelo de análisis
+
+El procesamiento de resultados se estructura conceptualmente en tres niveles:
+
+### OBSERVATION
+
+Hecho directamente observado mediante una herramienta.
+
+Ejemplos:
+
+- un puerto TCP se encuentra abierto;
+- un determinado servicio fue identificado;
+- un certificado es autofirmado;
+- un servidor responde con una determinada cabecera.
+
+Una observación no implica por sí misma una vulnerabilidad.
+
+### VALIDATION
+
+Condición que requiere una comprobación adicional.
+
+Ejemplos:
+
+- verificar si un servicio DNS permite recursión abierta;
+- comprobar si un servicio admite autenticación anónima;
+- validar una configuración detectada por una herramienta.
+
+### VULN
+
+Condición que cuenta con evidencia suficiente para ser considerada una vulnerabilidad candidata.
+
+La clasificación realizada por METATRON no reemplaza la validación del analista.
+
+Antes de aceptar un hallazgo se recomienda comprobar:
+
+- qué evidencia concreta lo sustenta;
+- si la condición fue realmente verificada;
+- si se trata de una vulnerabilidad o de una recomendación de hardening;
+- si la severidad asignada es adecuada;
+- si existe alguna validación pendiente;
+- si puede tratarse de un falso positivo.
+
+---
+
+## 4. Arquitectura
+
+La arquitectura principal se divide en tres componentes:
+
+### `metatron.py`
+
+Orquestador principal.
+
+Responsable de:
+
+- interacción CLI;
+- selección de herramientas;
+- creación de sesiones;
+- coordinación del análisis;
+- persistencia de resultados.
+
+### `llm.py`
+
+Motor de análisis.
+
+Responsable de:
+
+- interacción con el modelo de lenguaje;
+- procesamiento de evidencia;
+- generación de observaciones;
+- identificación de validaciones;
+- clasificación de vulnerabilidades candidatas;
+- control de rondas de análisis;
+- prevención de llamadas repetidas a herramientas;
+- generación de mitigaciones y resumen final.
+
+### `db.py`
+
+Capa de persistencia.
+
+Responsable de:
+
+- conexión con MariaDB;
+- almacenamiento del historial;
+- almacenamiento de observaciones;
+- almacenamiento de vulnerabilidades;
+- almacenamiento de mitigaciones;
+- almacenamiento de resúmenes.
+
+---
+
+## 5. Herramientas integradas
+
+Según la selección realizada durante el análisis, METATRON puede utilizar herramientas tradicionales como:
+
+- Nmap
+- Nikto
+- WhatWeb
+- curl
+- dig
+- WHOIS
+
+Estas herramientas generan la evidencia técnica que posteriormente es analizada y correlacionada.
+
+---
+
+## 6. Inteligencia artificial local
+
+El fork está diseñado para trabajar con un modelo de lenguaje ejecutado localmente mediante Ollama.
+
+Este enfoque permite que:
+
+- la evidencia permanezca dentro de la infraestructura del organismo;
+- no sea necesario enviar resultados de análisis a servicios externos de IA;
+- el organismo mantenga control sobre el modelo utilizado;
+- la infraestructura de ejecución pueda ser auditada y administrada localmente.
+
+El modelo de lenguaje no debe considerarse una fuente autoritativa.
+
+Puede producir:
+
+- falsos positivos;
+- interpretaciones incorrectas;
+- inferencias incompletas;
+- severidades discutibles;
+- clasificaciones que requieran revisión.
+
+El criterio final corresponde al analista.
+
+---
+
+## 7. Controles incorporados en este fork
+
+Este fork incorpora modificaciones destinadas a mejorar el comportamiento del modelo y la calidad del análisis.
+
+Entre ellas:
+
+- separación entre observaciones y vulnerabilidades;
+- soporte para validaciones adicionales;
+- instrucciones orientadas a evidencia;
+- reducción de inferencias no sustentadas;
+- filtros para determinados falsos positivos recurrentes;
+- control de llamadas repetidas a herramientas;
+- límite de rondas de análisis;
+- generación de salida estructurada;
+- generación de resultados en español;
+- almacenamiento de observaciones en MariaDB.
+
+El objetivo de estos controles es reducir ruido y mejorar la utilidad del resultado, no eliminar completamente los falsos positivos.
+
+---
+
+## 8. Base de datos
+
+METATRON utiliza MariaDB para almacenar el historial de análisis.
+
+El esquema utilizado por esta versión se incluye en:
+
+```text
+metatron_schema.sql
+```
+
+La estructura incluye las tablas:
+
+```text
+history
+observations
+vulnerabilities
+fixes
+exploits_attempted
+summary
+```
+
+El archivo de esquema permite recrear la estructura de la base sin incluir datos históricos de análisis.
+
+Ejemplo:
 
 ```bash
-git clone https://github.com/sooryathejas/METATRON.git
+sudo mysql -e "CREATE DATABASE metatron;"
+sudo mysql metatron < metatron_schema.sql
+```
+
+---
+
+## 9. Instalación
+
+Se recomienda desplegar METATRON en una máquina virtual dedicada.
+
+Cada organismo debería realizar su propia instalación y controlar:
+
+- sistema operativo;
+- permisos;
+- credenciales;
+- acceso a Internet;
+- VLAN o segmentos de red accesibles;
+- reglas de firewall;
+- recursos asignados;
+- versión del modelo de lenguaje.
+
+### Clonar el repositorio
+
+```bash
+git clone https://github.com/ingenieria-cnc/METATRON
 cd METATRON
 ```
 
-### 2. Create and activate virtual environment
+### Crear entorno virtual
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
 ```
 
-### 3. Install Python dependencies
+### Instalar dependencias
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 4. Install system tools
+### Configurar MariaDB
+
+Crear la base:
 
 ```bash
-sudo apt install nmap whois whatweb curl dnsutils nikto
+sudo mysql -e "CREATE DATABASE metatron;"
+```
+
+Importar el esquema:
+
+```bash
+sudo mysql metatron < metatron_schema.sql
+```
+
+### Configurar Ollama
+
+Instalar Ollama y descargar o crear el modelo definido para la implementación.
+
+La configuración del modelo puede encontrarse en:
+
+```text
+Modelfile
+```
+
+### Ejecutar METATRON
+
+```bash
+python3 metatron.py
 ```
 
 ---
 
-## 🤖 AI Model Setup
+## 10. Modelo de distribución
 
-### Step 1 — Install Ollama
+Este fork se distribuye siguiendo un enfoque basado en:
 
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
-```
+### Auditable
 
-### Step 2 — Download the base model
+El código puede ser revisado y comparado con el proyecto original.
 
-```bash
-ollama pull huihui_ai/qwen3.5-abliterated:9b
-```
+Los organismos receptores pueden identificar exactamente qué modificaciones fueron incorporadas.
 
-> ⚠️ This model requires at least 8.4 GB of RAM. If your system has less, use the 4b variant:
-> ```bash
-> ollama pull huihui_ai/qwen3.5-abliterated:4b
-> ```
-> Then edit `Modelfile` and change the FROM line to the 4b model.
+### Controlado
 
-### Step 3 — Build the custom metatron-qwen model
+Cada organismo despliega METATRON en su propia infraestructura.
 
-The repo includes a `Modelfile` that fine-tunes the base model with pentest-specific parameters:
+El organismo mantiene el control sobre:
 
-```bash
-ollama create metatron-qwen -f Modelfile
-```
+- VM;
+- red;
+- credenciales;
+- permisos;
+- segmentos autorizados;
+- modelo de lenguaje;
+- acceso externo.
 
-This creates your local `metatron-qwen` model with:
-- 16,384 token context window
-- Temperature: 0.7
-- Top-k: 10
-- Top-p: 0.9
+### Trazable
 
-### Step 4 — Verify the model exists
+Se recomienda utilizar releases versionadas.
 
-```bash
-ollama list
-```
+Cada release debería incluir:
 
-You should see `metatron-qwen` in the list.
+- código fuente;
+- número de versión;
+- notas de cambios;
+- esquema de base de datos;
+- documentación;
+- hashes SHA-256 de los archivos distribuidos.
+
+Esto permite identificar exactamente qué versión fue probada y desplegada.
 
 ---
 
-## 🗄️ Database Setup
+## 11. Relación con el proyecto original
 
-### Step 1 — Make sure MariaDB is running
+Este repositorio es un fork de un proyecto open source preexistente.
 
-```bash
-sudo systemctl start mariadb
-sudo systemctl enable mariadb
-```
+Se recomienda mantener configurado el repositorio original como `upstream` para facilitar el seguimiento de cambios futuros.
 
-### Step 2 — Create the database and user
+Ejemplo:
 
 ```bash
-mysql -u root
+git remote -v
 ```
 
-```sql
-CREATE DATABASE metatron;
-CREATE USER 'metatron'@'localhost' IDENTIFIED BY '123';
-GRANT ALL PRIVILEGES ON metatron.* TO 'metatron'@'localhost';
-FLUSH PRIVILEGES;
-EXIT;
+Configuración esperada:
+
+```text
+origin    https://github.com/ingenieria-cnc/METATRON
+upstream  https://github.com/sooryathejas/METATRON
 ```
 
-### Step 3 — Create the tables
+Esto permite:
 
-```bash
-mysql -u metatron -p123 metatron
-```
-
-```sql
-CREATE TABLE history (
-  sl_no     INT AUTO_INCREMENT PRIMARY KEY,
-  target    VARCHAR(255) NOT NULL,
-                      scan_date DATETIME NOT NULL,
-                      status    VARCHAR(50) DEFAULT 'active'
-);
-
-CREATE TABLE vulnerabilities (
-  id          INT AUTO_INCREMENT PRIMARY KEY,
-  sl_no       INT,
-  vuln_name   TEXT,
-  severity    VARCHAR(50),
-                              port        VARCHAR(20),
-                              service     VARCHAR(100),
-                              description TEXT,
-                              FOREIGN KEY (sl_no) REFERENCES history(sl_no)
-);
-
-CREATE TABLE fixes (
-  id       INT AUTO_INCREMENT PRIMARY KEY,
-  sl_no    INT,
-  vuln_id  INT,
-  fix_text TEXT,
-  source   VARCHAR(50),
-                    FOREIGN KEY (sl_no) REFERENCES history(sl_no),
-                    FOREIGN KEY (vuln_id) REFERENCES vulnerabilities(id)
-);
-
-CREATE TABLE exploits_attempted (
-  id           INT AUTO_INCREMENT PRIMARY KEY,
-  sl_no        INT,
-  exploit_name TEXT,
-  tool_used    TEXT,
-  payload      LONGTEXT,
-  result       TEXT,
-  notes        TEXT,
-  FOREIGN KEY (sl_no) REFERENCES history(sl_no)
-);
-
-CREATE TABLE summary (
-  id           INT AUTO_INCREMENT PRIMARY KEY,
-  sl_no        INT,
-  raw_scan     LONGTEXT,
-  ai_analysis  LONGTEXT,
-  risk_level   VARCHAR(50),
-                      generated_at DATETIME,
-                      FOREIGN KEY (sl_no) REFERENCES history(sl_no)
-);
-```
+- identificar diferencias;
+- incorporar selectivamente mejoras del proyecto original;
+- evitar actualizaciones automáticas no evaluadas;
+- mantener trazabilidad sobre las modificaciones institucionales.
 
 ---
 
-## 🚀 Usage
+## 12. Recomendaciones de despliegue
 
-Metatron needs **two terminal tabs** to run.
+Para una primera implementación se recomienda:
 
-### Terminal 1 — Load the AI model
+1. desplegar la herramienta en laboratorio;
+2. utilizar activos deliberadamente vulnerables o sistemas de prueba;
+3. validar el comportamiento del modelo;
+4. evaluar falsos positivos;
+5. revisar las herramientas ejecutadas;
+6. verificar la persistencia de resultados;
+7. limitar inicialmente los segmentos de red accesibles;
+8. ampliar progresivamente el alcance.
 
-```bash
-ollama run metatron-qwen
-```
-
-Wait until you see the `>>>` prompt. This means the model is loaded into memory and ready. You can leave this terminal running in the background.
-
-### Terminal 2 — Launch Metatron
-
-```bash
-cd ~/METATRON
-source venv/bin/activate
-python metatron.py
-```
+No se recomienda otorgar acceso irrestricto a múltiples redes desde el primer despliegue.
 
 ---
 
-### Walkthrough
+## 13. Uso autorizado
 
-**1. Main menu appears:**
-```
-  [1]  New Scan
-  [2]  View History
-  [3]  Exit
-```
+METATRON debe utilizarse únicamente sobre:
 
-**2. Select [1] New Scan → enter your target:**
-```
-[?] Enter target IP or domain: 192.168.1.1
-```
-or
-```
-[?] Enter target IP or domain: example.com
-```
+- activos propios;
+- laboratorios;
+- ambientes de prueba;
+- redes expresamente autorizadas;
+- infraestructura para la cual exista autorización formal de evaluación.
 
-**3. Select recon tools to run:**
-```
-  [1] nmap
-  [2] whois
-  [3] whatweb
-  [4] curl headers
-  [5] dig DNS
-  [6] nikto
-  [a] Run all (except nikto)
-  [n] Run all + nikto (slow)
-```
-
-**4. Metatron runs the tools, feeds results to the AI, and prints the analysis.**
-
-**5. Everything is saved to MariaDB automatically.**
-
-**6. After the scan you can edit or delete any result.**
+El uso de esta herramienta contra sistemas sin autorización puede violar normas, políticas internas o legislación aplicable.
 
 ---
 
-## 📁 Project Structure
+## 14. Limitaciones conocidas
 
-```
-METATRON/
-├── metatron.py       ← main CLI entry point
-├── db.py             ← MariaDB connection and all CRUD operations
-├── tools.py          ← recon tool runners (nmap, whois, etc.)
-├── llm.py            ← Ollama interface and AI tool dispatch loop
-├── search.py         ← DuckDuckGo web search and CVE lookup
-├── Modelfile         ← custom model config for metatron-qwen
-├── requirements.txt  ← Python dependencies
-├── .gitignore        ← excludes venv, pycache, db files
-├── LICENSE           ← MIT License
-├── README.md         ← this file
-└── screenshots/      ← terminal screenshots for documentation
-```
+METATRON puede producir resultados incorrectos o incompletos.
 
----
+Entre las limitaciones conocidas:
 
-## 🗃️ Database Schema
+- falsos positivos;
+- identificación incorrecta de servicios;
+- inferencias basadas en información insuficiente;
+- clasificación discutible de severidad;
+- dependencia de la calidad de salida de herramientas externas;
+- ausencia de contexto de negocio;
+- dependencia del modelo de lenguaje utilizado.
 
-All 5 tables are linked by `sl_no` (session number) from the `history` table:
-
-```
-history              ← one row per scan session (sl_no is the spine)
-    │
-    ├── vulnerabilities   ← vulns found, linked by sl_no
-    │       │
-    │       └── fixes     ← fixes per vuln, linked by vuln_id + sl_no
-    │
-    ├── exploits_attempted ← exploits tried, linked by sl_no
-    │
-    └── summary           ← full AI analysis dump, linked by sl_no
-```
+Un hallazgo generado por METATRON no debe incorporarse automáticamente a un informe técnico sin revisión.
 
 ---
 
-## ⚠️ Disclaimer
+## 15. Rol del analista
 
-This tool is intended for **educational purposes and authorized penetration testing only**.
+METATRON debe considerarse un asistente.
 
-- Only use Metatron on systems you own or have **explicit written permission** to test.
-- Unauthorized scanning or exploitation of systems is **illegal**.
-- The author is not responsible for any misuse of this tool.
+La responsabilidad del analista incluye:
+
+- revisar la evidencia;
+- confirmar las condiciones detectadas;
+- descartar falsos positivos;
+- contextualizar el impacto;
+- determinar la severidad final;
+- realizar validaciones técnicas adicionales cuando corresponda;
+- decidir qué hallazgos deben formar parte de un informe.
+
+> **La IA propone y organiza; el analista valida, contextualiza y decide.**
 
 ---
 
-## 👤 Author
+## 16. Estado del proyecto
 
-**Soorya Thejas**
-- GitHub: [@sooryathejas](https://github.com/sooryathejas)
+Estado actual:
+
+```text
+Beta funcional
+```
+
+La versión actual fue diseñada para evaluación controlada y uso asistido por analistas.
+
+Las futuras mejoras deberían surgir principalmente de:
+
+- experiencia real de uso;
+- feedback de analistas;
+- identificación de falsos positivos recurrentes;
+- nuevas necesidades de integración;
+- mejoras provenientes del proyecto upstream.
 
 ---
 
-## 📄 License
+## 17. Seguridad y reporte de problemas
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+Los problemas relacionados con:
+
+- funcionamiento;
+- seguridad;
+- falsos positivos sistemáticos;
+- comportamiento del modelo;
+- compatibilidad;
+- dependencias;
+
+deberían reportarse mediante los mecanismos definidos en este repositorio.
+
+No incluir en los reportes públicos:
+
+- credenciales;
+- direcciones internas sensibles;
+- evidencia de incidentes reales;
+- información clasificada;
+- datos personales;
+- configuraciones de infraestructura que no deban divulgarse.
+
+---
+
+## 18. Licencia
+
+Este fork mantiene la licencia correspondiente al proyecto original.
+
+Se deben conservar los avisos de copyright y licencia exigidos por dicha licencia.
+
+Consultar:
+
+```text
+LICENSE
+```
+
+para conocer los términos aplicables.
+
+---
+
+## 19. Principio de diseño
+
+METATRON no busca reemplazar al analista ni automatizar completamente su criterio.
+
+Su propósito es:
+
+> **combinar herramientas tradicionales, inteligencia artificial local y criterio humano para mejorar la capacidad de interpretar evidencia y orientar una investigación técnica.**
